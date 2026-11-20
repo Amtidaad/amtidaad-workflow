@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AMTIDAAD Workflow Tracker</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--ink:#1c2430;--mute:#6b7685;--line:#e3e6eb;--acc:#b3202a;--acc2:#8d1821;--ok:#1f8a4c;--warn:#c27a00;--bad:#c4262e;--blue:#2457a6;--r:10px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+#app{min-height:100vh}
+.top{display:flex;align-items:center;gap:18px;padding:0 20px;height:54px;background:#1c2430;color:#fff;position:sticky;top:0;z-index:5}
+.brand{font-weight:700;letter-spacing:.3px}.brand b{color:#ff6b73}
+.nav{display:flex;gap:4px;flex:1;overflow-x:auto}
+.nav button{background:none;border:0;color:#c9d0da;padding:8px 12px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.nav button:hover{background:#2a3444}.nav button.on{background:var(--acc);color:#fff}
+.who{font-size:13px;color:#c9d0da;white-space:nowrap}.who button{margin-left:8px;background:#2a3444;border:0;color:#fff;border-radius:6px;padding:5px 9px;cursor:pointer}
+.wrap{max-width:1280px;margin:0 auto;padding:20px}
+h1{font-size:20px;margin:0 0 14px}h2{font-size:15px;margin:0 0 10px}
+.banner{background:#fff6e0;border:1px solid #f0d58a;color:#6b4a00;padding:8px 12px;border-radius:8px;margin-bottom:14px;font-size:13px}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}.g2{grid-template-columns:repeat(auto-fit,minmax(380px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.kpi .n{font-size:28px;font-weight:700}.kpi .l{color:var(--mute);font-size:12.5px;text-transform:uppercase;letter-spacing:.4px}
+.kpi.bad .n{color:var(--bad)}.kpi.warn .n{color:var(--warn)}
+table{width:100%;border-collapse:collapse}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--mute);text-align:left;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.click{cursor:pointer}tr.click:hover td{background:#fafbfc}
+.tw{overflow-x:auto}
+.chip{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600;background:#eef0f4;color:#445}
+.chip.Sales{background:#e6efff;color:#1d4b99}.chip.Operations{background:#e5f6ec;color:#17693a}.chip.Procurement{background:#fff0d9;color:#8a5200}.chip.Finance{background:#f3e8fb;color:#6a2a96}.chip.Management{background:#e8eaee;color:#333}
+.chip.late{background:#fde7e8;color:var(--bad)}.chip.ok{background:#e3f5ea;color:var(--ok)}.chip.amber{background:#fff0d6;color:var(--warn)}.chip.closed{background:#e3f5ea;color:var(--ok)}.chip.open{background:#e6efff;color:var(--blue)}
+.btn{background:var(--acc);color:#fff;border:0;border-radius:7px;padding:7px 13px;cursor:pointer;font-weight:600}.btn:hover{background:var(--acc2)}
+.btn.sec{background:#fff;color:var(--ink);border:1px solid #cfd4dc}.btn.sec:hover{background:#f2f4f7}
+.btn.sm{padding:4px 9px;font-size:12.5px}.btn[disabled]{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.sp{flex:1}
+input,select,textarea{border:1px solid #cfd4dc;border-radius:7px;padding:7px 9px;background:#fff;width:100%}
+.row input,.row select{width:auto}
+label{display:block;font-size:12.5px;color:var(--mute);margin:10px 0 3px}
+.bar{display:flex;align-items:center;gap:8px;margin:7px 0}.bar .lb{width:100px;font-size:13px}.bar .tr{flex:1;background:#eef0f4;height:14px;border-radius:7px;overflow:hidden}.bar .fi{height:100%;background:var(--acc)}.bar .v{width:110px;font-size:12.5px;color:var(--mute);text-align:right}
+.split{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px}
+@media(max-width:900px){.split{grid-template-columns:1fr}}
+.steps{list-style:none;margin:0;padding:0}
+.step{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.step:last-child{border:0}
+.dot{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:13px;font-weight:700;background:#eef0f4;color:var(--mute)}
+.dot.done{background:var(--ok);color:#fff}.dot.active{background:var(--blue);color:#fff}.dot.over{background:var(--bad);color:#fff}.dot.skip{background:#aab2bf;color:#fff}
+.step .b{flex:1;min-width:0}.step .t{font-weight:600}.step .m{color:var(--mute);font-size:12.5px;margin-top:2px}
+.tabs{display:flex;gap:6px;margin-bottom:10px}.tabs button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 12px;cursor:pointer}.tabs button.on{background:#1c2430;color:#fff;border-color:#1c2430}
+.log{max-height:520px;overflow:auto}.ev{padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}.ev .m{color:var(--mute);font-size:12px}
+.chat{display:flex;flex-direction:column;height:520px}.msgs{flex:1;overflow:auto;padding:4px 2px}
+.msg{margin:8px 0;max-width:92%}.msg .h{font-size:12px;color:var(--mute)}.msg .x{background:#f1f3f6;border-radius:10px;padding:7px 10px;display:inline-block;white-space:pre-wrap;word-break:break-word}.msg.me{margin-left:auto;text-align:right}.msg.me .x{background:#fbe5e7}
+.chat form{display:flex;gap:8px;margin-top:8px}
+.modalbg{position:fixed;inset:0;background:rgba(20,26,36,.5);display:grid;place-items:center;z-index:20;padding:16px}
+.modal{background:#fff;border-radius:12px;padding:20px;width:min(520px,100%);max-height:92vh;overflow:auto}
+.modal h2{font-size:17px}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1c2430;color:#fff;padding:9px 16px;border-radius:8px;z-index:30}
+.login{max-width:380px;margin:9vh auto}
+.muted{color:var(--mute)}.small{font-size:12.5px}.err{color:var(--bad);font-size:13px;margin-top:8px}
+.meta{display:flex;gap:22px;flex-wrap:wrap;margin-top:8px}.meta div span{display:block;font-size:11.5px;color:var(--mute);text-transform:uppercase;letter-spacing:.4px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal"></div>
+<script src="firebase-config.js"></script>
+<script>
+"use strict";
+/* ============ CONFIG ============ */
+const DEPTS=['Sales','Operations','Procurement','Finance','Management'];
+const WF={
+  AMC:{label:'AMC (1-year service contract)',steps:[
+    {k:'reg',name:'Sales order registered (LPO received)',dept:'Sales',after:[],sla:0,auto:true},
+    {k:'service',name:'Service executed by Operations',dept:'Operations',after:['reg'],sla:168},
+    {k:'report',name:'Service report shared with Sales',dept:'Operations',after:['service'],sla:48},
+    {k:'finInfo',name:'Finance informed to invoice',dept:'Operations',after:['service'],sla:24},
+    {k:'invoice',name:'Invoice generated and submitted to client',dept:'Finance',after:['finInfo'],sla:48,fields:[{n:'invoiceNo',l:'Invoice number'},{n:'invoiceAmt',l:'Invoice amount (AED)',type:'number'}]},
+    {k:'paid',name:'Payment received',dept:'Finance',after:['invoice'],sla:'terms',fields:[{n:'payRef',l:'Payment reference'}]}
+  ]},
+  OTJ:{label:'One-time job (rectification / fit-out / refilling)',steps:[
+    {k:'reg',name:'Sales order registered (approval + costing, Ops requested)',dept:'Sales',after:[],sla:0,auto:true},
+    {k:'matReq',name:'Material requested from Procurement',dept:'Operations',after:['reg'],sla:24,skippable:true},
+    {k:'fundReq',name:'Procurement submits material cost and requests funds',dept:'Procurement',after:['matReq'],sla:24,skippable:true,fields:[{n:'amountReq',l:'Funds requested (AED)',type:'number'},{n:'supplier',l:'Supplier / PO reference'}]},
+    {k:'fundRel',name:'Finance releases funds for material',dept:'Finance',after:['fundReq'],sla:48,skippable:true,fund:true,fields:[{n:'amountRel',l:'Amount released (AED)',type:'number'},{n:'relRef',l:'Payment reference'},{n:'relMode',l:'Release',type:'select',opts:['Full amount released','Partial release — more to follow']}]},
+    {k:'matOk',name:'Procurement confirms material (full / progressive)',dept:'Procurement',after:['fundRel'],sla:72,skippable:true,fields:[{n:'matMode',l:'Material availability',type:'select',opts:['All material available','Partial — proceed progressively']}]},
+    {k:'exec',name:'Job executed by Operations',dept:'Operations',after:['matOk'],sla:168},
+    {k:'report',name:'Completion report shared with Finance',dept:'Operations',after:['exec'],sla:24},
+    {k:'invoice',name:'Invoice generated and submitted to client',dept:'Finance',after:['report'],sla:48,fields:[{n:'invoiceNo',l:'Invoice number'},{n:'invoiceAmt',l:'Invoice amount (AED)',type:'number'}]},
+    {k:'paid',name:'Payment received',dept:'Finance',after:['invoice'],sla:'terms',fields:[{n:'payRef',l:'Payment reference'}]}
+  ]}
+};
+const H=3600e3,D=24*H;
+
+/* ============ STORE (Firebase Firestore) ============ */
+/* Data layout (everything is stored against the Sales Order):
+   orders/{SO}                 -> order header + steps (who/when/notes/fields)
+   orders/{SO}/events/{id}     -> append-only activity log (timestamped)
+   orders/{SO}/chat/{id}       -> append-only chat messages
+   users/{id}, settings/sla                                              */
+let store=null,fb=null;
+async function makeFirebaseStore(cfg){
+  const V='13.4.0',base='https://www.gstatic.com/firebasejs/'+V+'/';
+  const A=await import(base+'firebase-app.js'),F=await import(base+'firebase-firestore.js'),Au=await import(base+'firebase-auth.js');
+  const app=A.initializeApp(cfg);const auth=Au.getAuth(app);
+  await Au.signInAnonymously(auth);
+  const db=F.getFirestore(app);
+  const ref=p=>F.doc(db,...p.split('/'));const col=p=>F.collection(db,...p.split('/'));
+  return{
+    watchCol(p,cb,err){return F.onSnapshot(col(p),s=>cb(s.docs.map(d=>({id:d.id,...d.data()}))),e=>err&&err(e))},
+    watchDoc(p,cb){return F.onSnapshot(ref(p),s=>cb(s.exists()?s.data():null),()=>{})},
+    set(p,d){return F.setDoc(ref(p),d)},
+    update(p,d){return F.updateDoc(ref(p),d)},
+    del(p){return F.deleteDoc(ref(p))},
+    /* ops: {t:'set'|'update'|'add', p, d}  -> committed atomically */
+    async batch(ops){const b=F.writeBatch(db);ops.forEach(o=>{if(o.t==='add')b.set(F.doc(col(o.p)),o.d);else if(o.t==='set')b.set(ref(o.p),o.d);else b.update(ref(o.p),o.d)});await b.commit()}
+  };
+}
+
+/* ============ HELPERS ============ */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const oid=so=>String(so).trim().replace(/[^A-Za-z0-9_\-.~:@+]/g,'_').slice(0,120);
+const dtf=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Dubai',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
+const fmt=t=>t?dtf.format(new Date(t)):'—';
+function dur(ms){ms=Math.max(0,ms);const d=Math.floor(ms/D),h=Math.floor(ms%D/H),m=Math.floor(ms%H/60e3);if(d)return d+'d '+h+'h';if(h)return h+'h '+m+'m';return m+'m'}
+const aed=n=>'AED '+Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0});
+async function hashPin(pin,id){const s=pin+':'+id;try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){let h=5381;for(const c of s)h=((h<<5)+h+c.charCodeAt(0))>>>0;return 'x'+h}}
+
+/* ============ STATE ============ */
+const S={user:null,view:'dash',orderId:null,tab:'log',users:[],orders:[],sla:{},chat:[],events:[],loaded:{users:false,orders:false},q:'',ft:'',fs:'open',fd:'',err:'',loadErr:false};
+let unsubs=[],rafId=0;
+
+/* ============ WORKFLOW ENGINE ============ */
+function slaHours(o,st){if(st.sla==='terms')return(o.terms||30)*24;const v=S.sla&&S.sla[o.type]&&S.sla[o.type][st.k];return v!=null?Number(v):st.sla}
+function analyze(o,now=Date.now()){
+  const wf=WF[o.type];if(!wf)return[];
+  const steps=o.steps||{};const out={};
+  const res=wf.steps.map(st=>{
+    const rec=steps[st.k];const r={st,rec,state:'waiting',readyAt:null,slaMs:slaHours(o,st)*H};
+    if(rec&&rec.doneAt){r.state=rec.skipped?'skipped':'done';r.doneAt=rec.doneAt}
+    out[st.k]=r;return r});
+  for(let i=res.length-1;i>=0;i--){const r=res[i];
+    if(r.state==='waiting'&&res.some(d=>d.st.after.includes(r.st.k)&&(d.state==='done'||d.state==='skipped'))){r.state='skipped';r.legacy=true;r.doneAt=null}}
+  res.forEach(r=>{
+    const pre=r.st.after.map(k=>out[k]);
+    const ok=pre.every(p=>p.state==='done'||p.state==='skipped');
+    if(ok){const ts=pre.map(p=>p.doneAt).filter(Boolean);r.readyAt=ts.length?Math.max(...ts):o.createdAt;if(r.state==='waiting')r.state='active'}
+    if(r.state==='active'){r.elapsed=now-r.readyAt;r.late=r.slaMs>0&&r.elapsed>r.slaMs;r.over=r.late?r.elapsed-r.slaMs:0}
+    if(r.state==='done'){r.took=r.doneAt-r.readyAt;r.lateDone=r.slaMs>0&&r.took>r.slaMs;r.over=r.lateDone?r.took-r.slaMs:0}
+    r.owner=(r.st.k==='paid'&&o.escalatedAt&&r.state==='active')?'Sales':r.st.dept;
+  });
+  return res;
+}
+const canAct=(st,u)=>!!u&&(u.role==='admin'||u.dept===st.dept);
+function activeOf(o){return analyze(o).filter(r=>r.state==='active')}
+
+/* ============ SUBSCRIPTIONS ============ */
+function boot(){
+  const err=()=>{S.loadErr=true;sched()};
+  store.watchCol('users',a=>{S.users=a;S.loaded.users=true;if(S.user){const m=a.find(x=>x.id===S.user.id);if(m)S.user=m}sched()},err);
+  store.watchCol('orders',a=>{S.orders=a;S.loaded.orders=true;sched()},err);
+  store.watchDoc('settings/sla',d=>{S.sla=d||{};sched()});
+  setInterval(()=>sched(),60000);
+}
+function openOrder(id){
+  unsubs.forEach(f=>f());unsubs=[];S.chat=[];S.events=[];
+  if(!id)return;
+  unsubs.push(store.watchCol('orders/'+id+'/chat',a=>{S.chat=a;sched()}));
+  unsubs.push(store.watchCol('orders/'+id+'/events',a=>{S.events=a;sched()}));
+}
+
+/* ============ RENDER ============ */
+function sched(){if(rafId)return;rafId=requestAnimationFrame(()=>{rafId=0;render()})}
+function render(){
+  const ae=document.activeElement;let keep=null;
+  if(ae&&ae.id&&$('#app').contains(ae)){keep={id:ae.id,s:ae.selectionStart,e:ae.selectionEnd,v:ae.value}}
+  const msgsEl=$('#msgs');const stick=!msgsEl||msgsEl.scrollTop+msgsEl.clientHeight>=msgsEl.scrollHeight-40;
+  $('#app').innerHTML=S.user?shell():loginView();
+  if(keep){const n=document.getElementById(keep.id);if(n){if(n.value!==undefined&&keep.v!==undefined&&n.tagName!=='SELECT')n.value=keep.v;n.focus();try{n.setSelectionRange(keep.s,keep.e)}catch(e){}}}
+  const m=$('#msgs');if(m&&stick)m.scrollTop=m.scrollHeight;
+}
+function loginView(){
+  if(!S.loaded.users)return`<div class="login card"><h1>AMTIDAAD Workflow Tracker</h1><p class="muted">${S.loadErr?'Could not reach the shared database.':'Loading…'}</p></div>`;
+  const banner='';
+  if(!S.users.length)return`<div class="login card">${banner}<h1>First-time setup</h1><p class="muted small">Create the administrator account (General Manager). You can add other users and departments afterwards.</p>
+  <form data-form="setup"><label>Full name</label><input name="name" required><label>PIN (4–8 digits)</label><input name="pin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" required>
+  <div class="err">${esc(S.err)}</div><p><button class="btn">Create admin</button></p></form></div>`;
+  return`<div class="login card">${banner}<h1>AMTIDAAD Workflow Tracker</h1><p class="muted small">Sign in with your name and PIN.</p>
+  <form data-form="login"><label>User</label><select name="uid" required><option value="">Select…</option>${[...S.users].sort((a,b)=>a.name.localeCompare(b.name)).map(u=>`<option value="${esc(u.id)}">${esc(u.name)} — ${esc(u.dept)}</option>`).join('')}</select>
+  <label>PIN</label><input name="pin" type="password" inputmode="numeric" required><div class="err">${esc(S.err)}</div><p><button class="btn">Sign in</button></p></form></div>`;
+}
+function shell(){
+  const u=S.user;const nav=[['dash','Dashboard'],['queue','My queue'],['orders','Orders']];if(u.role==='admin')nav.push(['admin','Admin']);
+  const qn=queueItems().length;
+  return`<div class="top"><div class="brand">AMTIDAAD <b>Workflow</b></div><div class="nav">${nav.map(([k,l])=>`<button class="${S.view===k||(S.view==='order'&&k==='orders')?'on':''}" data-act="nav" data-v="${k}">${l}${k==='queue'&&qn?` (${qn})`:''}</button>`).join('')}</div>
+  <div class="who">${esc(u.name)} · ${esc(u.dept)}<button data-act="logout">Sign out</button></div></div>
+  <div class="wrap">${S.view==='dash'?dashView():S.view==='queue'?queueView():S.view==='orders'?ordersView():S.view==='order'?orderView():adminView()}</div>`;
+}
+const chip=(d)=>`<span class="chip ${esc(d)}">${esc(d)}</span>`;
+function stageHtml(o){
+  if(o.status==='closed')return'<span class="chip closed">Closed</span>';
+  return activeOf(o).map(r=>`${chip(r.owner)} <span class="small">${esc(r.st.name)}</span>${r.late?` <span class="chip late">+${dur(r.over)}</span>`:''}`).join('<br>')||'—';
+}
+
+/* ---- dashboard ---- */
+function dashView(){
+  const open=S.orders.filter(o=>o.status!=='closed');
+  const stuck=[];let payOver=0,payVal=0,payN=0;
+  open.forEach(o=>activeOf(o).forEach(r=>{if(r.late)stuck.push({o,r});
+    if(r.st.k==='paid'){payVal+=Number((o.steps.invoice&&o.steps.invoice.fields&&o.steps.invoice.fields.invoiceAmt)||o.value||0);payN++;if(r.late)payOver++}}));
+  stuck.sort((a,b)=>b.r.over-a.r.over);
+  const byD={};DEPTS.forEach(d=>byD[d]={n:0,h:0,done:0,late:0,tot:0});
+  stuck.forEach(s=>{const d=byD[s.r.owner]||(byD[s.r.owner]={n:0,h:0,done:0,late:0,tot:0});d.n++;d.h+=s.r.over/H});
+  S.orders.forEach(o=>analyze(o).forEach(r=>{if(r.state==='done'&&r.st.sla!==0){const d=byD[r.st.dept];d.done++;d.tot+=r.took/H;if(r.lateDone)d.late++}}));
+  const mx=Math.max(1,...Object.values(byD).map(d=>d.h));
+  const mo=new Date();const closedM=S.orders.filter(o=>o.closedAt&&new Date(o.closedAt).getMonth()===mo.getMonth()&&new Date(o.closedAt).getFullYear()===mo.getFullYear()).length;
+  return`<h1>Management dashboard</h1><div class="grid g4">
+  <div class="card kpi"><div class="l">Open orders</div><div class="n">${open.length}</div></div>
+  <div class="card kpi ${stuck.length?'bad':''}"><div class="l">Steps overdue now</div><div class="n">${stuck.length}</div></div>
+  <div class="card kpi ${payOver?'warn':''}"><div class="l">Awaiting payment</div><div class="n">${payN}</div><div class="small muted">${aed(payVal)} · ${payOver} past terms</div></div>
+  <div class="card kpi"><div class="l">Closed this month</div><div class="n">${closedM}</div></div></div>
+  <div class="grid g2" style="margin-top:14px">
+  <div class="card"><h2>Where work is stuck (overdue hours by department)</h2>${DEPTS.map(d=>`<div class="bar"><div class="lb">${chip(d)}</div><div class="tr"><div class="fi" style="width:${byD[d].h/mx*100}%"></div></div><div class="v">${byD[d].n} step(s) · ${Math.round(byD[d].h)}h</div></div>`).join('')}</div>
+  <div class="card"><h2>Completed-step performance (all orders)</h2><div class="tw"><table><tr><th>Dept</th><th>Steps done</th><th>Avg time</th><th>Late</th></tr>${DEPTS.filter(d=>byD[d].done).map(d=>`<tr><td>${chip(d)}</td><td>${byD[d].done}</td><td>${dur(byD[d].tot/byD[d].done*H)}</td><td>${byD[d].late} (${Math.round(byD[d].late/byD[d].done*100)}%)</td></tr>`).join('')||'<tr><td colspan="4" class="muted">No completed steps yet</td></tr>'}</table></div></div></div>
+  <div class="card" style="margin-top:14px"><h2>Overdue steps — corrective action needed</h2><div class="tw"><table><tr><th>SO</th><th>Client</th><th>Stuck at</th><th>With</th><th>Waiting since</th><th>Overdue by</th></tr>
+  ${stuck.map(s=>`<tr class="click" data-act="open" data-id="${esc(s.o.id)}"><td><b>${esc(s.o.so)}</b></td><td>${esc(s.o.client)}</td><td>${esc(s.r.st.name)}${s.o.escalatedAt&&s.r.st.k==='paid'?' <span class="chip amber">Escalated</span>':''}</td><td>${chip(s.r.owner)}</td><td>${fmt(s.r.readyAt)}</td><td><span class="chip late">${dur(s.r.over)}</span></td></tr>`).join('')||'<tr><td colspan="6" class="muted">Nothing overdue — all steps are within SLA.</td></tr>'}</table></div></div>`;
+}
+/* ---- queue ---- */
+function queueItems(){
+  const u=S.user;if(!u)return[];const a=[];
+  S.orders.filter(o=>o.status!=='closed').forEach(o=>activeOf(o).forEach(r=>{if(u.role==='admin'||r.owner===u.dept||(u.dept==='Sales'&&r.st.k==='paid'&&o.salespersonId===u.id))a.push({o,r})}));
+  return a.sort((x,y)=>(y.r.over||0)-(x.r.over||0)||x.r.readyAt-y.r.readyAt);
+}
+function queueView(){
+  const q=queueItems();
+  return`<h1>My queue <span class="muted small">${S.user.role==='admin'?'(all departments)':esc(S.user.dept)}</span></h1><div class="card"><div class="tw"><table><tr><th>SO</th><th>Client</th><th>Task</th><th>Since</th><th>Status</th><th></th></tr>
+  ${q.map(({o,r})=>`<tr><td class="click" data-act="open" data-id="${esc(o.id)}"><b>${esc(o.so)}</b></td><td>${esc(o.client)}</td><td>${esc(r.st.name)} ${S.user.role==='admin'?chip(r.owner):''}</td><td>${fmt(r.readyAt)}<div class="small muted">${dur(r.elapsed)} ago</div></td><td>${r.late?`<span class="chip late">Overdue ${dur(r.over)}</span>`:`<span class="chip ok">On time</span>`}</td><td><button class="btn sm" data-act="open" data-id="${esc(o.id)}">Open</button></td></tr>`).join('')||'<tr><td colspan="6" class="muted">Nothing waiting on you.</td></tr>'}</table></div></div>`;
+}
+/* ---- orders ---- */
+function ordersView(){
+  let a=S.orders.slice();
+  if(S.q){const q=S.q.toLowerCase();a=a.filter(o=>[o.so,o.client,o.project,o.salesperson,o.lpoRef].join(' ').toLowerCase().includes(q))}
+  if(S.ft)a=a.filter(o=>o.type===S.ft);
+  if(S.fs)a=a.filter(o=>(o.status||'open')===S.fs);
+  if(S.fd)a=a.filter(o=>o.status!=='closed'&&activeOf(o).some(r=>r.owner===S.fd));
+  a.sort((x,y)=>y.createdAt-x.createdAt);
+  const sel=(id,v,opts)=>`<select id="${id}" data-act="filter" data-k="${id}">${opts.map(([x,l])=>`<option value="${x}" ${x===v?'selected':''}>${l}</option>`).join('')}</select>`;
+  return`<div class="row"><h1 style="margin:0">Orders</h1><div class="sp"></div>${S.user.dept==='Sales'||S.user.role==='admin'?'<button class="btn" data-act="newOrder">+ New sales order</button>':''}</div>
+  <div class="card" style="margin-top:12px"><div class="row" style="margin-bottom:10px"><input id="q" placeholder="Search SO, client, project, salesperson…" value="${esc(S.q)}" data-act="filter" data-k="q" style="min-width:260px">
+  ${sel('ft',S.ft,[['','All types'],['AMC','AMC'],['OTJ','One-time job']])}${sel('fs',S.fs,[['','Any status'],['open','Open'],['closed','Closed']])}${sel('fd',S.fd,[['','With any dept'],...DEPTS.map(d=>[d,'With '+d])])}</div>
+  <div class="tw"><table><tr><th>SO</th><th>Client / project</th><th>Type</th><th>Value</th><th>Salesperson</th><th>Current stage</th><th>Created</th></tr>
+  ${a.map(o=>`<tr class="click" data-act="open" data-id="${esc(o.id)}"><td><b>${esc(o.so)}</b>${o.escalatedAt&&o.status!=='closed'?' <span class="chip amber">Escalated</span>':''}</td><td>${esc(o.client)}<div class="small muted">${esc(o.project||'')}</div></td><td>${o.type}</td><td>${aed(o.value)}</td><td>${esc(o.salesperson||'')}</td><td>${stageHtml(o)}</td><td>${fmt(o.createdAt)}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">No orders match.</td></tr>'}</table></div></div>`;
+}
+/* ---- order detail ---- */
+function orderView(){
+  const o=S.orders.find(x=>x.id===S.orderId);if(!o)return`<p>Order not found. <button class="btn sec sm" data-act="nav" data-v="orders">Back</button></p>`;
+  const rows=analyze(o);const u=S.user;
+  const act=rows.find(r=>r.st.k==='paid');
+  const canEsc=act&&act.state==='active'&&act.late&&!o.escalatedAt&&(u.dept==='Finance'||u.role==='admin');
+  const steps=rows.map((r,i)=>{
+    const st=r.st;let cls='',sym=i+1,meta='';
+    if(r.state==='done'){cls='done';sym='✓';meta=`Done ${fmt(r.doneAt)} by <b>${esc(r.rec.byName)}</b> (${esc(r.rec.byDept)}) · took ${dur(r.took)}${r.slaMs?` of ${dur(r.slaMs)} SLA`:''} ${r.lateDone?`<span class="chip late">Late +${dur(r.over)}</span>`:r.slaMs?'<span class="chip ok">On time</span>':''}`}
+    else if(r.state==='skipped'){cls='skip';sym='–';meta=r.legacy?'Not applicable (step added after this order was created)':`Skipped (not required) ${fmt(r.doneAt)} by ${esc(r.rec.byName)}`}
+    else if(r.state==='active'){cls=r.late?'over':'active';meta=`Waiting since ${fmt(r.readyAt)} · ${dur(r.elapsed)} elapsed${r.slaMs?` of ${dur(r.slaMs)} SLA`:''} ${r.late?`<span class="chip late">Overdue ${dur(r.over)}</span>`:'<span class="chip ok">Within SLA</span>'}`}
+    else{const w=st.after.map(k=>rows.find(x=>x.st.k===k).st.name).join(' and ');meta=`Waiting for: ${esc(w)}`}
+    const f=r.rec&&r.rec.fields?Object.entries(r.rec.fields).filter(([,v])=>v!==''&&v!=null).map(([k,v])=>{const fd=(st.fields||[]).find(x=>x.n===k);return`${esc(fd?fd.l:k)}: <b>${esc(v)}</b>`}).join(' · '):'';
+    const btn=r.state==='active'&&canAct({dept:r.owner==='Sales'?'Finance':st.dept},u)||(r.state==='active'&&u.role==='admin')?`<button class="btn sm" data-act="step" data-k="${st.k}">Complete</button>${st.skippable?` <button class="btn sec sm" data-act="skip" data-k="${st.k}">Skip</button>`:''}`:'';
+    return`<li class="step"><div class="dot ${cls}">${sym}</div><div class="b"><div class="t">${esc(st.name)} ${chip(st.dept)}</div><div class="m">${meta}</div>${f?`<div class="m">${f}</div>`:''}${r.rec&&r.rec.note?`<div class="m">Note: ${esc(r.rec.note)}</div>`:''}</div><div>${btn}</div></li>`}).join('');
+  const evs=S.events.slice().sort((a,b)=>b.ts-a.ts);
+  const msgs=S.chat.slice().sort((a,b)=>a.ts-b.ts);
+  const tabs=`<div class="tabs"><button class="${S.tab==='log'?'on':''}" data-act="tab" data-t="log">Activity log (${evs.length})</button><button class="${S.tab==='chat'?'on':''}" data-act="tab" data-t="chat">Chat (${msgs.length})</button></div>`;
+  const right=S.tab==='chat'?`<div class="chat"><div class="msgs" id="msgs">${msgs.map(m=>`<div class="msg ${m.by===u.id?'me':''}"><div class="h"><b>${esc(m.byName)}</b> ${chip(m.dept)} · ${fmt(m.ts)}</div><div class="x">${esc(m.text)}</div></div>`).join('')||'<p class="muted small">No messages yet. Ask a question about this order here — everyone with access can see it.</p>'}</div>
+    <form data-form="chat"><input id="chatInput" name="text" placeholder="Write a message…" autocomplete="off"><button class="btn">Send</button></form></div>`
+    :`<div class="log">${evs.map(e=>`<div class="ev"><b>${esc(e.byName)}</b> ${chip(e.dept)} ${esc(e.text)}<div class="m">${fmt(e.ts)}</div></div>`).join('')}</div>
+    <form data-form="note" class="row" style="margin-top:10px"><input id="noteInput" name="text" placeholder="Add a note to the log…" style="flex:1"><button class="btn sec sm">Add note</button></form>`;
+  return`<div class="row"><button class="btn sec sm" data-act="nav" data-v="orders">← Orders</button><div class="sp"></div>
+  ${o.type==='AMC'&&(u.dept==='Sales'||u.role==='admin')?`<button class="btn sec sm" data-act="newOtj">Raise one-time job from this AMC</button>`:''}
+  ${(u.dept==='Sales'||u.dept==='Finance'||u.role==='admin')&&act&&act.state==='active'?`<button class="btn sec sm" data-act="followup">Log client follow-up</button>`:''}
+  <button class="btn sec sm" data-act="export">Export audit trail (CSV)</button>
+  ${o.type==='OTJ'&&o.status!=='closed'&&(u.dept==='Finance'||u.role==='admin')?`<button class="btn sec sm" data-act="fund">Log material fund release</button>`:''}
+  ${canEsc?`<button class="btn sm" data-act="escalate">Escalate payment to salesperson</button>`:''}</div>
+  <div class="card" style="margin-top:12px"><div class="row"><h1 style="margin:0">${esc(o.so)}</h1><span class="chip ${o.status==='closed'?'closed':'open'}">${o.status==='closed'?'Closed':'Open'}</span><span class="chip">${o.type}</span>${o.escalatedAt&&o.status!=='closed'?'<span class="chip amber">Payment escalated</span>':''}</div>
+  <div class="meta"><div><span>Client</span>${esc(o.client)}</div><div><span>Project / site</span>${esc(o.project||'—')}</div><div><span>Value</span>${aed(o.value)}</div><div><span>Salesperson</span>${esc(o.salesperson||'—')}</div><div><span>Payment terms</span>${o.terms} days</div><div><span>LPO / Odoo ref</span>${esc(o.lpoRef||'—')}</div>${o.parentSO?`<div><span>Linked AMC</span>${esc(o.parentSO)}</div>`:''}${o.period?`<div><span>Contract period</span>${esc(o.period)}</div>`:''}${o.type==='OTJ'?fundsMeta(o):''}<div><span>Registered</span>${fmt(o.createdAt)}</div>${o.closedAt?`<div><span>Closed</span>${fmt(o.closedAt)} (${dur(o.closedAt-o.createdAt)} end to end)</div>`:`<div><span>Age</span>${dur(Date.now()-o.createdAt)}</div>`}</div></div>
+  <div class="split" style="margin-top:14px"><div class="card"><h2>Workflow</h2><ul class="steps">${steps}</ul></div><div class="card">${tabs}${right}</div></div>`;
+}
+function fundsMeta(o){
+  const rq=o.steps&&o.steps.fundReq&&!o.steps.fundReq.skipped&&o.steps.fundReq.fields?Number(o.steps.fundReq.fields.amountReq||0):0;
+  const rel=S.events.filter(e=>e.type==='fund').reduce((a,e)=>a+Number(e.amount||0),0);
+  if(!rq&&!rel)return'';
+  return`<div><span>Material funds</span>Requested ${aed(rq)} · Released <b>${aed(rel)}</b>${rq&&rel<rq?` <span class="chip amber">${aed(rq-rel)} pending</span>`:''}</div>`;
+}
+/* ---- admin ---- */
+function adminView(){
+  return`<h1>Admin</h1><div class="grid g2"><div class="card"><div class="row"><h2 style="margin:0">Users</h2><div class="sp"></div><button class="btn sm" data-act="addUser">+ Add user</button></div>
+  <div class="tw"><table><tr><th>Name</th><th>Dept</th><th>Role</th><th></th></tr>${[...S.users].sort((a,b)=>a.dept.localeCompare(b.dept)||a.name.localeCompare(b.name)).map(x=>`<tr><td>${esc(x.name)}</td><td>${chip(x.dept)}</td><td>${x.role==='admin'?'Admin':'User'}</td><td style="white-space:nowrap"><button class="btn sec sm" data-act="resetPin" data-id="${esc(x.id)}">Reset PIN</button> ${x.id!==S.user.id?`<button class="btn sec sm" data-act="delUser" data-id="${esc(x.id)}">Remove</button>`:''}</td></tr>`).join('')}</table></div></div>
+  <div class="card"><h2>Step targets (SLA, hours)</h2><p class="muted small">A step is flagged overdue when it waits longer than this after its prerequisites finish. Payment uses each order's payment terms.</p>
+  <form data-form="sla">${Object.entries(WF).map(([t,w])=>`<h2 style="margin-top:12px">${w.label}</h2>${w.steps.filter(s=>s.sla!==0&&s.sla!=='terms').map(s=>`<div class="row" style="margin:4px 0"><span style="flex:1">${esc(s.name)} ${chip(s.dept)}</span><input type="number" min="1" name="${t}.${s.k}" value="${slaHours({type:t},s)}" style="width:80px"></div>`).join('')}`).join('')}<p><button class="btn">Save targets</button></p></form></div></div>`;
+}
+
+/* ============ MODALS ============ */
+function modal(title,body,onSubmit,okLabel='Save'){
+  $('#modal').innerHTML=`<div class="modalbg"><div class="modal"><h2>${esc(title)}</h2><form id="mf">${body}<div class="err" id="merr"></div><div class="row" style="margin-top:14px;justify-content:flex-end"><button type="button" class="btn sec" data-act="closeModal">Cancel</button><button class="btn">${esc(okLabel)}</button></div></form></div></div>`;
+  $('#mf').onsubmit=async e=>{e.preventDefault();const fd=Object.fromEntries(new FormData(e.target).entries());try{await onSubmit(fd);closeModal()}catch(er){$('#merr').textContent=er.message||'Could not save — please try again.'}};
+  const f=$('#mf input,#mf select,#mf textarea');if(f)f.focus();
+}
+function closeModal(){$('#modal').innerHTML=''}
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2600)}
+
+/* ============ ACTIONS ============ */
+const me=()=>({by:S.user.id,byName:S.user.name,dept:S.user.dept});
+const evt=(type,text,extra)=>({ts:Date.now(),type,text,...me(),...(extra||{})});
+async function completeStep(o,st,fd,skipped){
+  const rows=analyze(o);const ts=Date.now();
+  const fields={};(st.fields||[]).forEach(f=>{if(!skipped)fields[f.n]=fd[f.n]!==undefined?fd[f.n]:''});
+  const rec={doneAt:ts,by:S.user.id,byName:S.user.name,byDept:S.user.dept,note:fd.note||'',fields,skipped:!!skipped};
+  const behalf=S.user.dept!==st.dept&&S.user.role==='admin'?' (on behalf of '+st.dept+')':'';
+  const upd={['steps.'+st.k]:rec};
+  const extra={step:st.k};let etype=skipped?'skip':'done';
+  if(st.fund&&!skipped){etype='fund';extra.amount=Number(fields.amountRel||0)}
+  const ops=[{t:'add',p:'orders/'+o.id+'/events',d:evt(etype,(skipped?'skipped step: ':'completed step: ')+st.name+behalf+(st.fund&&!skipped?' — AED '+Number(fields.amountRel||0).toLocaleString('en-US'):'')+(fd.note?' — '+fd.note:''),extra)}];
+  if(skipped&&st.k==='fundReq'&&!(o.steps&&o.steps.fundRel)){upd['steps.fundRel']={doneAt:ts,by:S.user.id,byName:S.user.name,byDept:S.user.dept,note:'No funds requested',fields:{},skipped:true}}
+  const rest=rows.filter(r=>r.st.k!==st.k&&!(skipped&&st.k==='fundReq'&&r.st.k==='fundRel')).every(r=>r.state==='done'||r.state==='skipped');
+  if(rest){upd.status='closed';upd.closedAt=ts;ops.push({t:'add',p:'orders/'+o.id+'/events',d:evt('closed','order closed — all steps complete')})}
+  ops.unshift({t:'update',p:'orders/'+o.id,d:upd});
+  await store.batch(ops);
+}
+function stepModal(o,k,skip){
+  const st=WF[o.type].steps.find(s=>s.k===k);
+  const fields=skip?'':(st.fields||[]).map(f=>`<label>${esc(f.l)}</label>${f.type==='select'?`<select name="${f.n}">${f.opts.map(x=>`<option>${esc(x)}</option>`).join('')}</select>`:`<input name="${f.n}" ${f.type==='number'?'type="number" min="0" step="any"':''} required>`}`).join('');
+  modal((skip?'Skip: ':'Complete: ')+st.name,`${fields}<label>Note (optional)</label><textarea name="note" rows="2"></textarea>`,async fd=>{await completeStep(o,st,fd,skip);toast(skip?'Step skipped':'Step completed')},skip?'Skip step':'Mark complete');
+}
+function newOrderModal(parent){
+  const sp=S.users.filter(x=>x.dept==='Sales');
+  modal(parent?'New one-time job (linked to '+parent.so+')':'New sales order',`<div class="row"><div style="flex:1"><label>Sales order no. (from Odoo)</label><input name="so" required></div><div style="flex:1"><label>Type</label><select name="type">${Object.entries(WF).map(([k,w])=>`<option value="${k}" ${parent&&k==='OTJ'?'selected':''}>${w.label}</option>`).join('')}</select></div></div>
+  <label>Client</label><input name="client" required value="${esc(parent?parent.client:'')}"><label>Project / site</label><input name="project" value="${esc(parent?parent.project||'':'')}">
+  <div class="row"><div style="flex:1"><label>Order value (AED)</label><input name="value" type="number" min="0" step="any" required></div><div style="flex:1"><label>Payment terms (days)</label><input name="terms" type="number" min="0" value="${parent?parent.terms:30}"></div></div>
+  <div class="row"><div style="flex:1"><label>LPO / Odoo reference</label><input name="lpoRef"></div><div style="flex:1"><label>Salesperson</label><select name="sp">${sp.map(x=>`<option value="${esc(x.id)}" ${x.id===S.user.id?'selected':''}>${esc(x.name)}</option>`).join('')||`<option value="${esc(S.user.id)}">${esc(S.user.name)}</option>`}</select></div></div>
+  <label>AMC contract period (AMC only, optional)</label><input name="period" placeholder="e.g. 01 Jan 2026 – 31 Dec 2026">`,async fd=>{
+    const so=fd.so.trim();const id=oid(so);if(!id)throw new Error('Enter a sales order number');
+    if(S.orders.some(x=>x.id===id))throw new Error('This sales order number already exists');
+    const spu=S.users.find(x=>x.id===fd.sp)||S.user;const ts=Date.now();
+    const o={so,type:fd.type,client:fd.client.trim(),project:fd.project.trim(),value:Number(fd.value),terms:Number(fd.terms||30),lpoRef:fd.lpoRef.trim(),period:fd.type==='AMC'?fd.period.trim():'',parentSO:parent?parent.so:'',salesperson:spu.name,salespersonId:spu.id,createdAt:ts,createdBy:S.user.id,status:'open',
+      steps:{reg:{doneAt:ts,by:S.user.id,byName:S.user.name,byDept:S.user.dept,note:'',fields:{},skipped:false}}};
+    await store.batch([{t:'set',p:'orders/'+id,d:o},{t:'add',p:'orders/'+id+'/events',d:evt('created','registered sales order '+so+' ('+fd.type+') and handed over to Operations')}]);
+    S.orderId=id;S.view='order';S.tab='log';openOrder(id);toast('Sales order registered');
+  },'Register order');
+}
+async function postEvent(o,type,text,extra,patch){const ops=[{t:'add',p:'orders/'+o.id+'/events',d:evt(type,text,extra)}];if(patch)ops.unshift({t:'update',p:'orders/'+o.id,d:patch});await store.batch(ops)}
+
+function exportCsv(o){
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const rows=[['Section','Time (Dubai)','Step / Type','Dept','By','Detail']];
+  analyze(o).forEach(r=>{if(r.rec)rows.push(['Step',fmt(r.doneAt),r.st.name,r.rec.byDept,r.rec.byName,(r.state==='skipped'?'SKIPPED ':'')+'took '+dur(r.took||0)+(r.lateDone?' (LATE +'+dur(r.over)+')':'')+(r.rec.note?' | '+r.rec.note:'')+(r.rec.fields?' | '+Object.entries(r.rec.fields).map(([k,v])=>k+': '+v).join(', '):'')])});
+  S.events.slice().sort((a,b)=>a.ts-b.ts).forEach(e=>rows.push(['Log',fmt(e.ts),e.type,e.dept,e.byName,e.text]));
+  S.chat.slice().sort((a,b)=>a.ts-b.ts).forEach(m=>rows.push(['Chat',fmt(m.ts),'message',m.dept,m.byName,m.text]));
+  const blob=new Blob(['\ufeff'+['Sales order: '+o.so+' | '+o.client].map(q).join(',')+'\n'+rows.map(r=>r.map(q).join(',')).join('\n')],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=o.so.replace(/[^\w.-]+/g,'_')+'-audit-trail.csv';document.body.appendChild(a);a.click();a.remove();
+}
+/* ============ EVENTS ============ */
+document.addEventListener('click',async e=>{
+  const t=e.target.closest('[data-act]');if(!t)return;const a=t.dataset.act;
+  const o=S.orders.find(x=>x.id===S.orderId);
+  if(a==='filter')return;
+  if(a==='nav'){S.view=t.dataset.v;unsubs.forEach(f=>f());unsubs=[];sched()}
+  else if(a==='logout'){S.user=null;S.err='';unsubs.forEach(f=>f());unsubs=[];sched()}
+  else if(a==='open'){S.orderId=t.dataset.id;S.view='order';S.tab='log';openOrder(S.orderId);sched()}
+  else if(a==='tab'){S.tab=t.dataset.t;sched()}
+  else if(a==='step'&&o)stepModal(o,t.dataset.k,false);
+  else if(a==='skip'&&o)stepModal(o,t.dataset.k,true);
+  else if(a==='export'&&o)exportCsv(o);
+  else if(a==='newOrder')newOrderModal(null);
+  else if(a==='newOtj'&&o)newOrderModal(o);
+  else if(a==='closeModal')closeModal();
+  else if(a==='escalate'&&o){modal('Escalate payment to salesperson',`<p class="small muted">Payment is past the agreed terms. ${esc(o.salesperson||'The salesperson')} will see this order in their queue and is expected to follow up with the client.</p><label>Message to salesperson</label><textarea name="note" rows="3" required></textarea>`,async fd=>{await postEvent(o,'escalate','escalated overdue payment to '+(o.salesperson||'Sales')+' — '+fd.note,{},{escalatedAt:Date.now()});toast('Escalated')},'Escalate')}
+  else if(a==='fund'&&o){modal('Log material fund release',`<label>Amount released (AED)</label><input name="amt" type="number" min="1" step="any" required><label>Payment reference / supplier</label><input name="ref"><label>Note (optional)</label><textarea name="note" rows="2"></textarea>`,async fd=>{await postEvent(o,'fund','released AED '+Number(fd.amt).toLocaleString('en-US')+' for material'+(fd.ref?' ('+fd.ref+')':'')+(fd.note?' — '+fd.note:''),{amount:Number(fd.amt)});toast('Fund release logged')},'Log')}
+  else if(a==='followup'&&o){modal('Log client follow-up',`<label>What did the client say?</label><textarea name="note" rows="3" required></textarea><label>Promised payment date (optional)</label><input type="date" name="date">`,async fd=>{await postEvent(o,'followup','logged client follow-up — '+fd.note+(fd.date?' (client promised payment by '+fd.date+')':''));toast('Follow-up logged')},'Log')}
+  else if(a==='addUser'){modal('Add user',`<label>Full name</label><input name="name" required><label>Department</label><select name="dept">${DEPTS.map(d=>`<option>${d}</option>`).join('')}</select><label>Role</label><select name="role"><option value="user">User</option><option value="admin">Admin (all permissions)</option></select><label>PIN (4–8 digits)</label><input name="pin" pattern="[0-9]{4,8}" required>`,async fd=>{const id='u'+uid();await store.set('users/'+id,{name:fd.name.trim(),dept:fd.dept,role:fd.role,pin:await hashPin(fd.pin,id)});toast('User added')},'Add user')}
+  else if(a==='resetPin'){const id=t.dataset.id;modal('Reset PIN',`<label>New PIN (4–8 digits)</label><input name="pin" pattern="[0-9]{4,8}" required>`,async fd=>{await store.update('users/'+id,{pin:await hashPin(fd.pin,id)});toast('PIN reset')},'Reset')}
+  else if(a==='delUser'){const id=t.dataset.id;const u=S.users.find(x=>x.id===id);modal('Remove '+(u?u.name:'user')+'?',`<p>This user will no longer be able to sign in. Their past activity stays in the logs.</p>`,async()=>{await store.del('users/'+id)},'Remove')}
+});
+document.addEventListener('input',e=>{const t=e.target;if(t.dataset&&t.dataset.act==='filter'){S[t.dataset.k]=t.value;sched()}});
+document.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.act==='filter'){S[t.dataset.k]=t.value;sched()}});
+document.addEventListener('submit',async e=>{
+  const f=e.target.closest('[data-form]');if(!f)return;e.preventDefault();const k=f.dataset.form;const fd=Object.fromEntries(new FormData(f).entries());
+  try{
+    if(k==='setup'){const id='u'+uid();await store.set('users/'+id,{name:fd.name.trim(),dept:'Management',role:'admin',pin:await hashPin(fd.pin,id)});S.user={id,name:fd.name.trim(),dept:'Management',role:'admin'};S.err='';S.view='dash'}
+    else if(k==='login'){const u=S.users.find(x=>x.id===fd.uid);if(!u||u.pin!==await hashPin(fd.pin,u.id)){S.err='Wrong user or PIN';sched();return}S.user=u;S.err='';S.view=u.role==='admin'?'dash':'queue'}
+    else if(k==='chat'){const o=S.orders.find(x=>x.id===S.orderId);const text=(fd.text||'').trim();if(!text||!o)return;const inp=$('#chatInput');if(inp)inp.value='';await store.batch([{t:'add',p:'orders/'+o.id+'/chat',d:{ts:Date.now(),text,...me()}}]);return}
+    else if(k==='note'){const o=S.orders.find(x=>x.id===S.orderId);const text=(fd.text||'').trim();if(!text||!o)return;const inp=$('#noteInput');if(inp)inp.value='';await postEvent(o,'note','noted: '+text);return}
+    else if(k==='sla'){const v={};Object.entries(fd).forEach(([n,x])=>{const [t,s]=n.split('.');(v[t]=v[t]||{})[s]=Number(x)});await store.set('settings/sla',v);toast('Targets saved')}
+    sched();
+  }catch(er){toast('Could not save: '+(er&&er.message||'try again'))}
+});
+
+/* ============ START ============ */
+(async function(){
+  const cfg=window.AMT_FIREBASE_CONFIG;
+  if(!cfg||!cfg.apiKey||String(cfg.apiKey).startsWith('PASTE')){
+    $('#app').innerHTML='<div class="login card"><h1>Setup needed</h1><p>Open <b>firebase-config.js</b> and paste your Firebase web-app config, then reload. See README.md.</p></div>';return}
+  $('#app').innerHTML='<div class="login card"><h1>AMTIDAAD Workflow Tracker</h1><p class="muted">Connecting…</p></div>';
+  try{store=await makeFirebaseStore(cfg);boot()}
+  catch(e){$('#app').innerHTML='<div class="login card"><h1>Could not connect</h1><p class="err">'+esc(e.message||e)+'</p><p class="small muted">Check firebase-config.js, that Anonymous sign-in is enabled, and that the Firestore rules are published.</p></div>'}
+})();
+</script>
+</body>
+</html>
